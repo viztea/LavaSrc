@@ -25,10 +25,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class FloweryTTSAudioTrack extends DelegatedAudioTrack {
-	private static final Logger log = LoggerFactory.getLogger(FloweryTTSAudioTrack.class);
-
 	public static final String API_BASE = "https://api.flowery.pw/v1/tts";
-
+	private static final Logger log = LoggerFactory.getLogger(FloweryTTSAudioTrack.class);
 	private final FloweryTTSSourceManager sourceManager;
 
 	public FloweryTTSAudioTrack(AudioTrackInfo trackInfo, FloweryTTSSourceManager sourceManager) {

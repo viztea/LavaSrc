@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class YouTubeConfig {
 
-    private String countryCode = "US";
+	private String countryCode = "US";
 
-    public String getCountryCode() {
-        return countryCode;
-    }
+	public String getCountryCode() {
+		return countryCode;
+	}
 
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
-    }
+	public void setCountryCode(String countryCode) {
+		this.countryCode = countryCode;
+	}
 }

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -56,30 +57,30 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-	private SpotifyTokenTracker tokenTracker;
 	private final String countryCode;
+	private SpotifyTokenTracker tokenTracker;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
-		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
+		this(clientId, clientSecret, null, countryCode, () -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
 
-	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
+	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
-		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, mirroringAudioTrackResolver);
+		this(clientId, clientSecret, null, countryCode, () -> audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
-	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		this(clientId, clientSecret, null, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
-	public SpotifySourceManager(String clientId, String clientSecret, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+	public SpotifySourceManager(String clientId, String clientSecret, String spDc, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
 		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc);

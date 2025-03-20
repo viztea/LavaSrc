@@ -190,10 +190,9 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		MP3_64(false, Mp3AudioTrack::new),
 		AAC_64(true, MpegAudioTrack::new); // not sure if this one is so better to be safe.
 
+		public static final TrackFormat[] DEFAULT_FORMATS = new TrackFormat[]{MP3_128, MP3_64};
 		private boolean isPremiumFormat;
 		private BiFunction<AudioTrackInfo, PersistentHttpStream, InternalAudioTrack> trackFactory;
-
-		public static final TrackFormat[] DEFAULT_FORMATS = new TrackFormat[]{MP3_128, MP3_64};
 
 		TrackFormat(boolean isPremiumFormat, BiFunction<AudioTrackInfo, PersistentHttpStream, InternalAudioTrack> trackFactory) {
 			this.isPremiumFormat = isPremiumFormat;

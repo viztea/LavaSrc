@@ -67,6 +67,15 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
 
+	private static boolean canBeLong(String str) {
+		try {
+			Long.parseLong(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
 	public void setAccessToken(String accessToken) {
 		if (accessToken == null || accessToken.isEmpty()) {
 			throw new IllegalArgumentException("Yandex Music accessToken must be set");
@@ -320,15 +329,6 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			throw new RuntimeException(e);
 		}
 		return null;
-	}
-
-	private static boolean canBeLong(String str) {
-		try {
-			Long.parseLong(str);
-			return true;
-		} catch (NumberFormatException e) {
-			return false;
-		}
 	}
 
 	private AudioItem getRecommendations(String identifier) throws IOException {

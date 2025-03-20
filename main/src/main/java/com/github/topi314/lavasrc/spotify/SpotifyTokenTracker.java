@@ -63,104 +63,6 @@ public class SpotifyTokenTracker {
 		}
 	}
 
-	public void setClientIDS(String clientId, String clientSecret) {
-		this.clientId = clientId;
-		this.clientSecret = clientSecret;
-		this.accessToken = null;
-		this.expires = null;
-	}
-
-	public String getAccessToken() throws IOException {
-		if (this.accessToken == null || this.expires == null || this.expires.isBefore(Instant.now())) {
-			synchronized (this) {
-				if (accessToken == null || this.expires == null || this.expires.isBefore(Instant.now())) {
-					log.debug("Access token is invalid or expired, refreshing token...");
-					this.refreshAccessToken();
-				}
-			}
-		}
-		return this.accessToken;
-	}
-
-	private void refreshAccessToken() throws IOException {
-		boolean usePublicToken = !hasValidCredentials();
-		HttpUriRequest request;
-
-		if (!usePublicToken) {
-			request = new HttpPost("https://accounts.spotify.com/api/token");
-			request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
-			((HttpPost) request).setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
-		} else {
-			request = new HttpGet(generateGetAccessTokenURL());
-		}
-
-		try {
-			var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
-			if (!json.get("error").isNull()) {
-				String error = json.get("error").text();
-				log.error("Error while fetching access token: {}", error);
-				throw new RuntimeException("Error while fetching access token: " + error);
-			}
-
-			if (!usePublicToken) {
-				accessToken = json.get("access_token").text();
-				expires = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
-			} else {
-				accessToken = json.get("accessToken").text();
-				expires = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
-			}
-		} catch (IOException e) {
-			log.error("Access token refreshing failed.", e);
-			throw new RuntimeException("Access token refreshing failed", e);
-		}
-	}
-
-	private boolean hasValidCredentials() {
-		return clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty();
-	}
-
-	public void setSpDc(String spDc) {
-		this.spDc = spDc;
-		this.accountToken = null;
-		this.accountTokenExpire = null;
-	}
-
-	public String getAccountToken() throws IOException {
-		if (this.accountToken == null || this.accountTokenExpire == null || this.accountTokenExpire.isBefore(Instant.now())) {
-			synchronized (this) {
-				if (this.accountToken == null || this.accountTokenExpire == null || this.accountTokenExpire.isBefore(Instant.now())) {
-					log.debug("Account token is invalid or expired, refreshing token...");
-					this.refreshAccountToken();
-				}
-			}
-		}
-		return this.accountToken;
-	}
-
-	public void refreshAccountToken() throws IOException {
-		var request = new HttpGet(generateGetAccessTokenURL());
-		request.addHeader("App-Platform", "WebPlayer");
-		request.addHeader("Cookie", "sp_dc=" + this.spDc);
-
-		try {
-			var json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), request);
-			if (!json.get("error").isNull()) {
-				String error = json.get("error").text();
-				log.error("Error while fetching account token: {}", error);
-				throw new RuntimeException("Error while fetching account token: " + error);
-			}
-			this.accountToken = json.get("accessToken").text();
-			this.accountTokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
-		} catch (IOException e) {
-			log.error("Account token refreshing failed.", e);
-			throw new RuntimeException("Account token refreshing failed", e);
-		}
-	}
-
-	public boolean hasValidAccountCredentials() {
-		return this.spDc != null && !this.spDc.isEmpty();
-	}
-
 	public static String generateTOTP(String secret, int period, int digits) {
 		long time = System.currentTimeMillis() / 1000 / period;
 		ByteBuffer buffer = ByteBuffer.allocate(8);
@@ -290,5 +192,103 @@ public class SpotifyTokenTracker {
 				+ Character.digit(s.charAt(i + 1), 16));
 		}
 		return data;
+	}
+
+	public void setClientIDS(String clientId, String clientSecret) {
+		this.clientId = clientId;
+		this.clientSecret = clientSecret;
+		this.accessToken = null;
+		this.expires = null;
+	}
+
+	public String getAccessToken() throws IOException {
+		if (this.accessToken == null || this.expires == null || this.expires.isBefore(Instant.now())) {
+			synchronized (this) {
+				if (accessToken == null || this.expires == null || this.expires.isBefore(Instant.now())) {
+					log.debug("Access token is invalid or expired, refreshing token...");
+					this.refreshAccessToken();
+				}
+			}
+		}
+		return this.accessToken;
+	}
+
+	private void refreshAccessToken() throws IOException {
+		boolean usePublicToken = !hasValidCredentials();
+		HttpUriRequest request;
+
+		if (!usePublicToken) {
+			request = new HttpPost("https://accounts.spotify.com/api/token");
+			request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
+			((HttpPost) request).setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
+		} else {
+			request = new HttpGet(generateGetAccessTokenURL());
+		}
+
+		try {
+			var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
+			if (!json.get("error").isNull()) {
+				String error = json.get("error").text();
+				log.error("Error while fetching access token: {}", error);
+				throw new RuntimeException("Error while fetching access token: " + error);
+			}
+
+			if (!usePublicToken) {
+				accessToken = json.get("access_token").text();
+				expires = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
+			} else {
+				accessToken = json.get("accessToken").text();
+				expires = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
+			}
+		} catch (IOException e) {
+			log.error("Access token refreshing failed.", e);
+			throw new RuntimeException("Access token refreshing failed", e);
+		}
+	}
+
+	private boolean hasValidCredentials() {
+		return clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty();
+	}
+
+	public void setSpDc(String spDc) {
+		this.spDc = spDc;
+		this.accountToken = null;
+		this.accountTokenExpire = null;
+	}
+
+	public String getAccountToken() throws IOException {
+		if (this.accountToken == null || this.accountTokenExpire == null || this.accountTokenExpire.isBefore(Instant.now())) {
+			synchronized (this) {
+				if (this.accountToken == null || this.accountTokenExpire == null || this.accountTokenExpire.isBefore(Instant.now())) {
+					log.debug("Account token is invalid or expired, refreshing token...");
+					this.refreshAccountToken();
+				}
+			}
+		}
+		return this.accountToken;
+	}
+
+	public void refreshAccountToken() throws IOException {
+		var request = new HttpGet(generateGetAccessTokenURL());
+		request.addHeader("App-Platform", "WebPlayer");
+		request.addHeader("Cookie", "sp_dc=" + this.spDc);
+
+		try {
+			var json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), request);
+			if (!json.get("error").isNull()) {
+				String error = json.get("error").text();
+				log.error("Error while fetching account token: {}", error);
+				throw new RuntimeException("Error while fetching account token: " + error);
+			}
+			this.accountToken = json.get("accessToken").text();
+			this.accountTokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
+		} catch (IOException e) {
+			log.error("Account token refreshing failed.", e);
+			throw new RuntimeException("Account token refreshing failed", e);
+		}
+	}
+
+	public boolean hasValidAccountCredentials() {
+		return this.spDc != null && !this.spDc.isEmpty();
 	}
 }

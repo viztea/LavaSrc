@@ -14,22 +14,23 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 
 	public static final String ISRC_PATTERN = "%ISRC%";
 	public static final String QUERY_PATTERN = "%QUERY%";
 	private static final Logger log = LoggerFactory.getLogger(MirroringAudioSourceManager.class);
-	protected final Function<Void, AudioPlayerManager> audioPlayerManager;
+	protected final Supplier<AudioPlayerManager> audioPlayerManager;
 	protected final MirroringAudioTrackResolver resolver;
 
 	protected final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
 	protected MirroringAudioSourceManager(AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver resolver) {
-		this(unused -> audioPlayerManager, resolver);
+		this(() -> audioPlayerManager, resolver);
 	}
 
-	protected MirroringAudioSourceManager(Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver resolver) {
+	protected MirroringAudioSourceManager(Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver resolver) {
 		this.audioPlayerManager = audioPlayerManager;
 		this.resolver = resolver;
 	}
@@ -58,7 +59,7 @@ public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceMan
 	}
 
 	public AudioPlayerManager getAudioPlayerManager() {
-		return this.audioPlayerManager.apply(null);
+		return this.audioPlayerManager.get();
 	}
 
 	public MirroringAudioTrackResolver getResolver() {

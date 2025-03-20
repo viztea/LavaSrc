@@ -58,12 +58,12 @@ public class YandexMusicAudioTrack extends ExtendedAudioTrack {
 		}
 
 		var mp3ItemUrl = json.get("result")
-				.values()
-				.stream()
-				.filter(c -> c.get("codec").text().equals("mp3"))
-				.max(Comparator.comparingLong(b -> b.get("bitrateInKbps").asLong(0)))
-				.map(d -> d.get("downloadInfoUrl").text())
-				.orElseThrow(() -> new IllegalStateException("No download Mp3 item URL found for track " + id));
+			.values()
+			.stream()
+			.filter(c -> c.get("codec").text().equals("mp3"))
+			.max(Comparator.comparingLong(b -> b.get("bitrateInKbps").asLong(0)))
+			.map(d -> d.get("downloadInfoUrl").text())
+			.orElseThrow(() -> new IllegalStateException("No download Mp3 item URL found for track " + id));
 		var downloadInfo = this.sourceManager.getDownloadStrings(mp3ItemUrl, "downloadinfo-xml-page")[0];
 		if (downloadInfo.isEmpty()) {
 			throw new IllegalStateException("No downloadInfo found for track " + id);

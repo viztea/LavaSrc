@@ -36,17 +36,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class VkMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager, AudioSearchManager {
-	private static final Pattern VK_PLAYLIST_HEADER_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audios\\d+\\?q=[^&]+&z=audio_playlist(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
-	private static final Pattern VK_PLAYLIST_TYPE_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/music/(playlist|album)/(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
-	private static final Pattern VK_TRACK_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audio(?<id>-?\\d+)_(?<artistId>-?\\d+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
-	private static final Pattern VK_ARTIST_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/artist/(?<artistId>[^/?#]+)");
-
 	public static final String SEARCH_PREFIX = "vksearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "vkrec:";
 	public static final String PUBLIC_API_BASE = "https://api.vk.com/method/";
 	public static final String API_VERSION = "5.199";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
-
+	private static final Pattern VK_PLAYLIST_HEADER_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audios\\d+\\?q=[^&]+&z=audio_playlist(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
+	private static final Pattern VK_PLAYLIST_TYPE_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/music/(playlist|album)/(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
+	private static final Pattern VK_TRACK_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audio(?<id>-?\\d+)_(?<artistId>-?\\d+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
+	private static final Pattern VK_ARTIST_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/artist/(?<artistId>[^/?#]+)");
 	private static final Logger log = LoggerFactory.getLogger(VkMusicSourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager;

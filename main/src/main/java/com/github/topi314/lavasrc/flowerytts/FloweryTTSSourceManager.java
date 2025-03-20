@@ -34,9 +34,8 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 	private static final int SILENCE_MAX = 10000;
 	private static final float SPEED_MIN = 0.5f;
 	private static final float SPEED_MAX = 10;
-
-	private String voice = null;
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	private String voice = null;
 	private boolean translate = false;
 	private int silence = 0;
 	private float speed = 1;

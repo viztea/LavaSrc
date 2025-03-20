@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -46,11 +47,11 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	private final String countryCode;
 	private int searchLimit = 6;
 
-	public TidalSourceManager(String[] providers, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, String tidalToken) {
+	public TidalSourceManager(String[] providers, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, String tidalToken) {
 		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), tidalToken);
 	}
 
-	public TidalSourceManager(String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, String tidalToken) {
+	public TidalSourceManager(String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, String tidalToken) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
 		if (tidalToken == null || tidalToken.isEmpty()) {

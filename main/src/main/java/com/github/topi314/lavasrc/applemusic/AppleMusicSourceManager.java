@@ -13,11 +13,8 @@ import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.track.*;
-import org.jsoup.Jsoup;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +34,8 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -54,19 +51,19 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public static final Set<AudioSearchResult.Type> TOP_RESULT_SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
 
 	private final String countryCode;
+	private final AppleMusicTokenManager tokenManager;
 	private int playlistPageLimit;
 	private int albumPageLimit;
-	private final AppleMusicTokenManager tokenManager;
 
-	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
+	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager) {
 		this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
 
 	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
-		this(mediaAPIToken, countryCode, unused -> audioPlayerManager, mirroringAudioTrackResolver);
+		this(mediaAPIToken, countryCode, () -> audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
-	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
 
@@ -75,6 +72,23 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to initialize token manager", e);
 		}
+	}
+
+	public static AppleMusicSourceManager fromMusicKitKey(String musicKitKey, String keyId, String teamId, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		var base64 = musicKitKey.replaceAll("-----BEGIN PRIVATE KEY-----\n", "")
+			.replaceAll("-----END PRIVATE KEY-----", "")
+			.replaceAll("\\s", "");
+		var keyBytes = Base64.getDecoder().decode(base64);
+		var spec = new PKCS8EncodedKeySpec(keyBytes);
+		var keyFactory = KeyFactory.getInstance("EC");
+		var key = (ECKey) keyFactory.generatePrivate(spec);
+		var jwt = JWT.create()
+			.withIssuer(teamId)
+			.withIssuedAt(Instant.now())
+			.withExpiresAt(Instant.now().plus(Duration.ofSeconds(15777000)))
+			.withKeyId(keyId)
+			.sign(Algorithm.ECDSA256(key));
+		return new AppleMusicSourceManager(jwt, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
 	public void setPlaylistPageLimit(int playlistPageLimit) {
@@ -463,23 +477,5 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			return null;
 		}
 		return url.substring(url.lastIndexOf('/') + 1);
-	}
-
-
-	public static AppleMusicSourceManager fromMusicKitKey(String musicKitKey, String keyId, String teamId, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		var base64 = musicKitKey.replaceAll("-----BEGIN PRIVATE KEY-----\n", "")
-			.replaceAll("-----END PRIVATE KEY-----", "")
-			.replaceAll("\\s", "");
-		var keyBytes = Base64.getDecoder().decode(base64);
-		var spec = new PKCS8EncodedKeySpec(keyBytes);
-		var keyFactory = KeyFactory.getInstance("EC");
-		var key = (ECKey) keyFactory.generatePrivate(spec);
-		var jwt = JWT.create()
-			.withIssuer(teamId)
-			.withIssuedAt(Instant.now())
-			.withExpiresAt(Instant.now().plus(Duration.ofSeconds(15777000)))
-			.withKeyId(keyId)
-			.sign(Algorithm.ECDSA256(key));
-		return new AppleMusicSourceManager(jwt, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 }
