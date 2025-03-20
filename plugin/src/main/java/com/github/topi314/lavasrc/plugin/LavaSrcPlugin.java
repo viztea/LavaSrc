@@ -9,6 +9,7 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringResources;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
@@ -49,8 +50,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
 
+		MirroringResources mirroringResources = new MirroringResources(
+			() -> manager,
+			new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders())
+		);
+
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
-			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), () -> manager, new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
+			this.spotify = new SpotifySourceManager(mirroringResources, spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode());
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}
@@ -65,7 +71,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 		if (sourcesConfig.isAppleMusic()) {
-			this.appleMusic = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), () -> manager);
+			this.appleMusic = new AppleMusicSourceManager(mirroringResources, appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode());
 			if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
 				appleMusic.setPlaylistPageLimit(appleMusicConfig.getPlaylistLoadLimit());
 			}
@@ -124,7 +130,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 		if (sourcesConfig.isTidal()) {
-			this.tidal = new TidalSourceManager(pluginConfig.getProviders(), tidalConfig.getCountryCode(), () -> this.manager, tidalConfig.getToken());
+			this.tidal = new TidalSourceManager(mirroringResources, tidalConfig.getCountryCode(), tidalConfig.getToken());
 			if (tidalConfig.getSearchLimit() > 0) {
 				this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
 			}

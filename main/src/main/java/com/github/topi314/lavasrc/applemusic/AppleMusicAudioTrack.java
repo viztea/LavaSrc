@@ -1,6 +1,6 @@
 package com.github.topi314.lavasrc.applemusic;
 
-import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
@@ -10,12 +10,16 @@ import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 
 public class AppleMusicAudioTrack extends MirroringAudioTrack {
 
-	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, AppleMusicSourceManager sourceManager) {
-		this(trackInfo, null, null, null, null, null, false, sourceManager);
+	public final AppleMusicSourceManager sourceManager;
+
+	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, AppleMusicSourceManager sourceManager) {
+		super(trackInfo, sourceManager.mirroringResources, LavaSrcTools.getInterfaces(sourceManager), albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
+		this.sourceManager = sourceManager;
 	}
 
-	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
-		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview, sourceManager);
+	@Override
+	public AppleMusicSourceManager getSourceManager() {
+		return sourceManager;
 	}
 
 	@Override
@@ -25,7 +29,7 @@ public class AppleMusicAudioTrack extends MirroringAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new AppleMusicAudioTrack(this.trackInfo, (AppleMusicSourceManager) this.sourceManager);
+		return new AppleMusicAudioTrack(this.trackInfo, null, null, null, null, null, false, this.sourceManager);
 	}
 
 }

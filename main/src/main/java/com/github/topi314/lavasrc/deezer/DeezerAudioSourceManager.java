@@ -1,31 +1,5 @@
 package com.github.topi314.lavasrc.deezer;
 
-import com.github.topi314.lavalyrics.AudioLyricsManager;
-import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
-import com.github.topi314.lavalyrics.lyrics.BasicAudioLyrics;
-import com.github.topi314.lavasearch.AudioSearchManager;
-import com.github.topi314.lavasearch.result.AudioSearchResult;
-import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
-import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
-import com.github.topi314.lavasrc.LavaSrcTools;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.*;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -37,12 +11,34 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioSearchManager, AudioLyricsManager {
+import com.github.topi314.lavalyrics.AudioLyricsManager;
+import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
+import com.github.topi314.lavalyrics.lyrics.BasicAudioLyrics;
+import com.github.topi314.lavasearch.AudioSearchManager;
+import com.github.topi314.lavasearch.result.AudioSearchResult;
+import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
+import com.github.topi314.lavasrc.Networked;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
+import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements Networked, AudioSearchManager, AudioLyricsManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?deezer\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>track|album|playlist|artist)/(?<identifier>[0-9]+)");
 	public static final String SEARCH_PREFIX = "dzsearch:";
@@ -82,6 +78,22 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		this.arl = arl != null && arl.isEmpty() ? null : arl;
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+	}
+
+	@Override
+	public HttpInterfaceManager getHttpInterfaceManager() {
+		return this.httpInterfaceManager;
+	}
+
+	public void setFormats(DeezerAudioTrack.TrackFormat[] formats) {
+		if (formats.length == 0) {
+			throw new IllegalArgumentException("Deezer track formats must not be empty");
+		}
+		this.formats = formats;
+	}
+
+	public void setArl(String arl) {
+		this.arl = arl;
 	}
 
 	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
@@ -537,21 +549,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	public void shutdown() {
-		try {
-			this.httpInterfaceManager.close();
-		} catch (IOException e) {
-			log.error("Failed to close HTTP interface manager", e);
-		}
-	}
-
-	@Override
-	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-		this.httpInterfaceManager.configureRequests(configurator);
-	}
-
-	@Override
-	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-		this.httpInterfaceManager.configureBuilder(configurator);
+		LavaSrcTools.shutdownNetworked(this);
 	}
 
 	public String getMasterDecryptionKey() {
@@ -563,23 +561,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		return this.arl;
 	}
 
-	public void setArl(String arl) {
-		this.arl = arl;
-	}
-
 	public DeezerAudioTrack.TrackFormat[] getFormats() {
 		return this.formats;
-	}
-
-	public void setFormats(DeezerAudioTrack.TrackFormat[] formats) {
-		if (formats.length == 0) {
-			throw new IllegalArgumentException("Deezer track formats must not be empty");
-		}
-		this.formats = formats;
-	}
-
-	public HttpInterface getHttpInterface() {
-		return this.httpInterfaceManager.getInterface();
 	}
 
 	public static class Tokens {

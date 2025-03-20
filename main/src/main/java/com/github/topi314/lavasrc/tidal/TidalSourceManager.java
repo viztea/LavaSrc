@@ -1,36 +1,30 @@
 package com.github.topi314.lavasrc.tidal;
 
-import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
-import com.github.topi314.lavasrc.LavaSrcTools;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
-import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
-import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.*;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class TidalSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
+import com.github.topi314.lavasrc.Networked;
+import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringResources;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
+import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.client.methods.HttpGet;
+
+public class TidalSourceManager extends ExtendedAudioSourceManager implements Networked {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist|mix)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?");
 	public static final String SEARCH_PREFIX = "tdsearch:";
@@ -40,19 +34,24 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	public static final int ALBUM_MAX_PAGE_ITEMS = 120;
 
 	private static final String USER_AGENT = "TIDAL/3704 CFNetwork/1220.1 Darwin/20.3.0";
-	private static final Logger log = LoggerFactory.getLogger(TidalSourceManager.class);
 
 	private final String tidalToken;
 	private final HttpInterfaceManager httpInterfaceManager;
 	private final String countryCode;
 	private int searchLimit = 6;
 
+	protected final MirroringResources mirroringResources;
+
 	public TidalSourceManager(String[] providers, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, String tidalToken) {
 		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), tidalToken);
 	}
 
 	public TidalSourceManager(String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, String tidalToken) {
-		super(audioPlayerManager, mirroringAudioTrackResolver);
+		this(new MirroringResources(audioPlayerManager, mirroringAudioTrackResolver), countryCode, tidalToken);
+	}
+
+	public TidalSourceManager(MirroringResources mirroringResources, String countryCode, String tidalToken) {
+		this.mirroringResources = mirroringResources;
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
 		if (tidalToken == null || tidalToken.isEmpty()) {
 			throw new IllegalArgumentException("Tidal token must be provided");
@@ -66,6 +65,11 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	}
 
 	@Override
+	public HttpInterfaceManager getHttpInterfaceManager() {
+		return this.httpInterfaceManager;
+	}
+
+	@Override
 	public String getSourceName() {
 		return "tidal";
 	}
@@ -73,7 +77,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
-		return new TidalAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.albumUrl, extendedAudioTrackInfo.artistUrl, extendedAudioTrackInfo.previewUrl, this);
+		return new TidalAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.albumUrl, extendedAudioTrackInfo.artistUrl, extendedAudioTrackInfo.artistArtworkUrl, this);
 	}
 
 	@Override
@@ -183,7 +187,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			artworkUrl = "https://resources.tidal.com/images/" + coverIdentifier.replaceAll("-", "/") + "/1280x1280.jpg";
 		}
 		var isrc = audio.get("isrc").text();
-		return new TidalAudioTrack(new AudioTrackInfo(title, artistName, duration, id, false, originalUrl, artworkUrl, isrc), this);
+		return new TidalAudioTrack(new AudioTrackInfo(title, artistName, duration, id, false, originalUrl, artworkUrl, isrc), null, null, null, null, this);
 	}
 
 	private AudioItem getAlbumOrPlaylist(String itemId, String type, int maxPageItems) throws IOException {
@@ -276,25 +280,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	}
 
 	@Override
-	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-		httpInterfaceManager.configureRequests(configurator);
-	}
-
-	@Override
-	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-		httpInterfaceManager.configureBuilder(configurator);
-	}
-
-	@Override
 	public void shutdown() {
-		try {
-			httpInterfaceManager.close();
-		} catch (IOException e) {
-			log.error("Failed to close HTTP interface manager", e);
-		}
-	}
-
-	public HttpInterface getHttpInterface() {
-		return httpInterfaceManager.getInterface();
+		LavaSrcTools.shutdownNetworked(this);
 	}
 }

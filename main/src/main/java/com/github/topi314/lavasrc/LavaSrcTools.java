@@ -1,5 +1,11 @@
 package com.github.topi314.lavasrc;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
+
+import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
+
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
@@ -12,14 +18,21 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
-
 public class LavaSrcTools {
 
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcTools.class);
+
+	public static Supplier<HttpInterface> getInterfaces(Networked self) {
+		return () -> self.getHttpInterfaceManager().getInterface();
+	}
+
+	public static void shutdownNetworked(Networked self) {
+		try {
+			self.getHttpInterfaceManager().close();
+		} catch (IOException e) {
+			log.error("Failed to close HTTP interface manager for {}", self, e);
+		}
+	}
 
 	@Nullable
 	public static JsonBrowser fetchResponseAsJson(HttpInterface httpInterface, HttpUriRequest request) throws IOException {

@@ -1,25 +1,5 @@
 package com.github.topi314.lavasrc.applemusic;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.github.topi314.lavasearch.AudioSearchManager;
-import com.github.topi314.lavasearch.result.AudioSearchResult;
-import com.github.topi314.lavasearch.result.AudioText;
-import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
-import com.github.topi314.lavasearch.result.BasicAudioText;
-import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
-import com.github.topi314.lavasrc.LavaSrcTools;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
-import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
-import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.track.*;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -39,7 +19,31 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class AppleMusicSourceManager extends MirroringAudioSourceManager implements AudioSearchManager {
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.github.topi314.lavasearch.AudioSearchManager;
+import com.github.topi314.lavasearch.result.AudioSearchResult;
+import com.github.topi314.lavasearch.result.AudioText;
+import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
+import com.github.topi314.lavasearch.result.BasicAudioText;
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
+import com.github.topi314.lavasrc.Networked;
+import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringResources;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
+import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class AppleMusicSourceManager extends ExtendedAudioSourceManager implements AudioSearchManager, Networked {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\p{L}\\d\\-%]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";
@@ -51,21 +55,31 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public static final Set<AudioSearchResult.Type> TOP_RESULT_SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
 
 	private final String countryCode;
-	private final AppleMusicTokenManager tokenManager;
 	private int playlistPageLimit;
 	private int albumPageLimit;
+	private final AppleMusicTokenManager tokenManager;
+	protected final HttpInterfaceManager httpInterfaceManager;
+	protected final MirroringResources mirroringResources;
 
+	@Deprecated(forRemoval = true)
 	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager) {
 		this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
 
+	@Deprecated(forRemoval = true)
 	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		this(mediaAPIToken, countryCode, () -> audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
+	@Deprecated(forRemoval = true)
 	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
-		super(audioPlayerManager, mirroringAudioTrackResolver);
+		this(new MirroringResources(audioPlayerManager, mirroringAudioTrackResolver), mediaAPIToken, countryCode);
+	}
+
+	public AppleMusicSourceManager(MirroringResources mirroringResources, String mediaAPIToken, String countryCode) {
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
+		this.mirroringResources = mirroringResources;
+		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
 		try {
 			this.tokenManager = new AppleMusicTokenManager(mediaAPIToken);
@@ -89,6 +103,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			.withKeyId(keyId)
 			.sign(Algorithm.ECDSA256(key));
 		return new AppleMusicSourceManager(jwt, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
+	}
+
+	@Override
+	public HttpInterfaceManager getHttpInterfaceManager() {
+		return this.httpInterfaceManager;
 	}
 
 	public void setPlaylistPageLimit(int playlistPageLimit) {
@@ -125,6 +144,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			extendedAudioTrackInfo.isPreview,
 			this
 		);
+	}
+
+	@Override
+	public void shutdown() {
+		LavaSrcTools.shutdownNetworked(this);
 	}
 
 	@Override

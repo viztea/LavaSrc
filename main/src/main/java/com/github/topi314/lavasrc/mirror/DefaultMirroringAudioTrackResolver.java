@@ -13,8 +13,8 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 	private static final Logger log = LoggerFactory.getLogger(DefaultMirroringAudioTrackResolver.class);
 
 	private String[] providers = {
-		"ytsearch:\"" + MirroringAudioSourceManager.ISRC_PATTERN + "\"",
-		"ytsearch:" + MirroringAudioSourceManager.QUERY_PATTERN
+		"ytsearch:\"" + MirroringResources.ISRC_PATTERN + "\"",
+		"ytsearch:" + MirroringResources.QUERY_PATTERN
 	};
 
 	public DefaultMirroringAudioTrackResolver(String[] providers) {
@@ -36,16 +36,16 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 				continue;
 			}
 
-			if (provider.contains(MirroringAudioSourceManager.ISRC_PATTERN)) {
+			if (provider.contains(MirroringResources.ISRC_PATTERN)) {
 				if (mirroringAudioTrack.getInfo().isrc != null && !mirroringAudioTrack.getInfo().isrc.isEmpty()) {
-					provider = provider.replace(MirroringAudioSourceManager.ISRC_PATTERN, mirroringAudioTrack.getInfo().isrc);
+					provider = provider.replace(MirroringResources.ISRC_PATTERN, mirroringAudioTrack.getInfo().isrc);
 				} else {
 					log.debug("Ignoring identifier \"{}\" because this track does not have an ISRC!", provider);
 					continue;
 				}
 			}
 
-			provider = provider.replace(MirroringAudioSourceManager.QUERY_PATTERN, getTrackTitle(mirroringAudioTrack));
+			provider = provider.replace(MirroringResources.QUERY_PATTERN, getTrackTitle(mirroringAudioTrack));
 
 			AudioItem item;
 			try {

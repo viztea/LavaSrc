@@ -1,5 +1,10 @@
 package com.github.topi314.lavasrc.mirror;
 
+import java.io.IOException;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
@@ -11,11 +16,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
+/**
+ * @deprecated
+ */
+@Deprecated(forRemoval = true)
 public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 
 	public static final String ISRC_PATTERN = "%ISRC%";
@@ -66,4 +70,7 @@ public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceMan
 		return this.resolver;
 	}
 
+	public MirroringResources getResources() {
+		return new MirroringResources(this.audioPlayerManager, this.resolver);
+	}
 }

@@ -1,31 +1,5 @@
 package com.github.topi314.lavasrc.spotify;
 
-import com.github.topi314.lavalyrics.AudioLyricsManager;
-import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
-import com.github.topi314.lavalyrics.lyrics.BasicAudioLyrics;
-import com.github.topi314.lavasearch.AudioSearchManager;
-import com.github.topi314.lavasearch.result.AudioSearchResult;
-import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
-import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
-import com.github.topi314.lavasrc.LavaSrcTools;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
-import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
-import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.*;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -35,13 +9,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager, AudioLyricsManager {
+import com.github.topi314.lavalyrics.AudioLyricsManager;
+import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
+import com.github.topi314.lavalyrics.lyrics.BasicAudioLyrics;
+import com.github.topi314.lavasearch.AudioSearchManager;
+import com.github.topi314.lavasearch.result.AudioSearchResult;
+import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
+import com.github.topi314.lavasrc.Networked;
+import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.mirror.MirroringResources;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
+import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class SpotifySourceManager extends ExtendedAudioSourceManager implements Networked, AudioSearchManager, AudioLyricsManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
@@ -54,15 +50,16 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final String API_BASE = "https://api.spotify.com/v1/";
 	public static final String CLIENT_API_BASE = "https://spclient.wg.spotify.com/";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.ARTIST, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.TRACK);
-	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-	private final String countryCode;
 	private SpotifyTokenTracker tokenTracker;
+	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
+
+	protected final MirroringResources mirroringResources;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, () -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -81,7 +78,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, String spDc, String countryCode, Supplier<AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
-		super(audioPlayerManager, mirroringAudioTrackResolver);
+		this(new MirroringResources(audioPlayerManager, mirroringAudioTrackResolver), clientId, clientSecret, spDc, countryCode);
+	}
+
+	public SpotifySourceManager(MirroringResources mirroringResources, String clientId, String clientSecret, String spDc, String countryCode) {
+		this.mirroringResources = mirroringResources;
 
 		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc);
 
@@ -109,6 +110,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setClientIDSecret(String clientId, String clientSecret) {
 		this.tokenTracker.setClientIDS(clientId, clientSecret);
+	}
+
+	@Override
+	public HttpInterfaceManager getHttpInterfaceManager() {
+		return this.httpInterfaceManager;
 	}
 
 	public void setSpDc(String spDc) {
@@ -515,20 +521,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	@Override
 	public void shutdown() {
-		try {
-			this.httpInterfaceManager.close();
-		} catch (IOException e) {
-			log.error("Failed to close HTTP interface manager", e);
-		}
-	}
-
-	@Override
-	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-		this.httpInterfaceManager.configureRequests(configurator);
-	}
-
-	@Override
-	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-		this.httpInterfaceManager.configureBuilder(configurator);
+		LavaSrcTools.shutdownNetworked(this);
 	}
 }
