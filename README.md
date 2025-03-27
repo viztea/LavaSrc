@@ -6,16 +6,16 @@
 > For LavaSrc v3 (Lavaplayer v1 & Lavalink v3) look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy)
 
 
-| Source          | Features        | Playback  | Credits                                                                           |
-| --------------- | --------------- | --------- | --------------------------------------------------------------------------------- |
-| Spotify         | 📁💿🎵🧑🔍🔬📜 | Mirror |                                                                                   |
-| Apple Music     | 📁💿🎵🧑🔍🔬📜 | Mirror | [@ryan5453](https://github.com/ryan5453)                                          |
-| Deezer          | 📁💿🎵🧑🔍🔬📜 | Direct | [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea)    |
-| Yandex          | 📁💿🎵🧑🔍🔬📜 | Direct | [@agutinvboy](https://github.com/agutinvboy)                                      |
-| Flowery TTS     |                 | Direct | [@bachtran02](https://github.com/bachtran02)                                      |
-| YouTube (Music) | 🔬📜            | N/A    | [@DRSchlaubi](https://github.com/DRSchlaubi)                                      |
-| VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct | [@Krispeckt](https://github.com/Krispeckt)                                        |
-| Tidal           | 📁💿🎵🗣️       | Mirror | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor) |
+| Source          | Features        | Playback | Credits                                                                                                                |
+| --------------- | --------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Spotify         | 📁💿🎵🧑🔍🔬📜  | Mirror   | [@topi314](https://github.com/topi314)                                                                                 |
+| Apple Music     | 📁💿🎵🧑🔍🔬📜  | Mirror   | [@ryan5453](https://github.com/ryan5453)                                                                               |
+| Deezer          | 📁💿🎵🧑🔍🔬📜  | Direct   | [@topi314](https://github.com/topi314), [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea) |
+| Yandex          | 📁💿🎵🧑🔍🔬📜  | Direct   | [@agutinvboy](https://github.com/agutinvboy)                                                                           |
+| Flowery TTS     |                 | Direct   | [@bachtran02](https://github.com/bachtran02)                                                                           |
+| YouTube (Music) | 🔬📜            | N/A      | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
+| VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct   | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
+| Tidal           | 📁💿🎵🗣️       | Mirror   | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor)                                      |
 
 - 📁 playlists
 - 💿 albums
