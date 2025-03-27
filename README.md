@@ -6,25 +6,24 @@
 > For LavaSrc v3 (Lavaplayer v1 & Lavalink v3) look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy)
 
 
-| Source          | Features   | Playback  | Credits                                                                           |
-| --------------- | ---------- | --------- | --------------------------------------------------------------------------------- |
-| Spotify         | `PASTQ.XL` | Mirror |                                                                                   |
-| Apple Music     | `PASTQ.X.` | Mirror | [@ryan5432](https://github.com/ryan5453)                                          |
-| Deezer          | `PASTQ.XL` | Direct | [@ryan5432](https://github.com/ryan5453), [@viztea](https://github.com/viztea)    |
-| Yandex          | `PASTQEXL` | Direct | [@agutinvboy](https://github.com/agutinvboy)                                      |
-| Flowery TTS     | N/A        | Direct | [@bachtran02](https://github.com/bachtran02)                                      |
-| YouTube (Music) | `......XL` | N/A    | [@DRSchlaubi](https://github.com/DRSchlaubi)                                      |
-| VK Music        | `PASTQ.XL` | Direct | [@Krispeckt](https://github.com/Krispeckt)                                        |
-| Tidal           | `PAST....` | Mirror | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor) |
+| Source          | Features        | Playback  | Credits                                                                           |
+| --------------- | --------------- | --------- | --------------------------------------------------------------------------------- |
+| Spotify         | 📁💿🎵🧑🔍🔬📜 | Mirror |                                                                                   |
+| Apple Music     | 📁💿🎵🧑🔍🔬📜 | Mirror | [@ryan5453](https://github.com/ryan5453)                                          |
+| Deezer          | 📁💿🎵🧑🔍🔬📜 | Direct | [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea)    |
+| Yandex          | 📁💿🎵🧑🔍🔬📜 | Direct | [@agutinvboy](https://github.com/agutinvboy)                                      |
+| Flowery TTS     |                 | Direct | [@bachtran02](https://github.com/bachtran02)                                      |
+| YouTube (Music) | 🔬📜            | N/A    | [@DRSchlaubi](https://github.com/DRSchlaubi)                                      |
+| VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct | [@Krispeckt](https://github.com/Krispeckt)                                        |
+| Tidal           | 📁💿🎵🗣️       | Mirror | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor) |
 
-- `P.......` playlists
-- `.A......` albums
-- `..S.....` songs
-- `...T....` artist top tracks
-- `....Q...` search results
-- `.....E..` podcast episodes
-- `......X.` [LavaSearch](https://github.com/topi314/LavaSearch)
-- `.......L` [LavaLyrics](https://github.com/topi314/LavaLyrics)
+- 📁 playlists
+- 💿 albums
+- 🎵 tracks
+- 🧑 artist top tracks
+- 🔍 search results
+- 🔬 [LavaSearch](https://github.com/topi314/LavaSearch)
+- 📜 [LavaLyrics](https://github.com/topi314/LavaLyrics)
 
 > [!IMPORTANT]
 > Tracks resolved from sources with `Mirror` playback do not actually play from that source, but are instead resolved via the configured providers.
