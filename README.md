@@ -5,18 +5,29 @@
 > [!IMPORTANT]
 > For LavaSrc v3 (Lavaplayer v1 & Lavalink v3) look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy)
 
-A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer), [LavaSearch](https://github.com/topi314/LavaSearch) & [LavaLyrics](https://github.com/topi314/LavaLyrics) Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
-* [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
-* [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch) (Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
-* [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics) (Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
-* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
-* [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
-* [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
-* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
-* [Tidal](https://tidal.com) playlists/albums/songs/search results (Thx to [Nansess](https://github.com/Nansess) and [InfNibor](https://github.com/infnibor) for implementing it)
+
+| Source          | Features   | Playback  | Credits                                                                           |
+| --------------- | ---------- | --------- | --------------------------------------------------------------------------------- |
+| Spotify         | `PASTQ.XL` | Mirror |                                                                                   |
+| Apple Music     | `PASTQ.X.` | Mirror | [@ryan5432](https://github.com/ryan5453)                                          |
+| Deezer          | `PASTQ.XL` | Direct | [@ryan5432](https://github.com/ryan5453), [@viztea](https://github.com/viztea)    |
+| Yandex          | `PASTQEXL` | Direct | [@agutinvboy](https://github.com/agutinvboy)                                      |
+| Flowery TTS     | N/A        | Direct | [@bachtran02](https://github.com/bachtran02)                                      |
+| YouTube (Music) | `......XL` | N/A    | [@DRSchlaubi](https://github.com/DRSchlaubi)                                      |
+| VK Music        | `PASTQ.XL` | Direct | [@Krispeckt](https://github.com/Krispeckt)                                        |
+| Tidal           | `PAST....` | Mirror | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor) |
+
+- `P.......` playlists
+- `.A......` albums
+- `..S.....` songs
+- `...T....` artist top tracks
+- `....Q...` search results
+- `.....E..` podcast episodes
+- `......X.` [LavaSearch](https://github.com/topi314/LavaSearch)
+- `.......L` [LavaLyrics](https://github.com/topi314/LavaLyrics)
 
 > [!IMPORTANT]
-> Tracks from Spotify & Apple Music & Tidal don't actually play from their sources, but are instead resolved via the configured providers
+> Tracks resolved from sources with `Mirror` playback do not actually play from that source, but are instead resolved via the configured providers.
 
 ## Summary
 
